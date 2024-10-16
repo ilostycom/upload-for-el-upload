@@ -26,9 +26,11 @@ const
     },
 
     isVideo = (url) => {
+        console.log(url);
         if (!isURL(url)) {
             return false;
         }
+        
         return isExtension(url, ['mp4']);
     },
 
@@ -42,6 +44,7 @@ const
             new URL(str);
             return true;
         } catch (e) {
+            console.log("preview url is not a url, ", str, e);
             return false;
         }
     };

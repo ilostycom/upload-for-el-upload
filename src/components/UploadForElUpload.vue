@@ -1,23 +1,44 @@
 <template>
-  <el-upload :action="action" :headers="headers" :multiple="multiple" :data="data" :name="name"
-    :on-success="handleSuccess" :file-list="fileList" :limit="limit">
-    <el-button size="small" type="primary">上传</el-button>
+  <el-upload
+    :action="action"
+    :headers="headers"
+    :multiple="multiple"
+    :data="data"
+    :name="name"
+    :on-success="handleSuccess"
+    :file-list="fileList"
+    :limit="limit"
+  >
+    <el-button type="primary">上传</el-button>
+    <template v-if="tips" #tip>
+      <div class="el-upload__tip">
+        {{ tips }}
+      </div>
+    </template>
 
-
+    <template #file="{ file }">
+      <UploadPreview
+        :url="file.url"
+        :previewBoxStyle="previewBoxStyle"
+      ></UploadPreview>
+      <span class="el-upload-list__item-actions">
+        <span class="el-upload-list__item-preview" @click="handlePreview(file)">
+          <el-icon><zoom-in /></el-icon>
+        </span>
+        <span class="el-upload-list__item-delete" @click="handleRemove(file)">
+          <el-icon><delete /></el-icon>
+        </span>
+      </span>
+    </template>
   </el-upload>
-  <UploadPreview v-if="typeof modelValue === 'string'" url="modelValue"></UploadPreview>
-  <template v-if="Array.isArray(modelValue)">
-    <UploadPreview v-for="(url, index) in modelValue" :key="index" :url="url"></UploadPreview>
-  </template>
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue';
-import { ElUpload, ElButton } from 'element-plus';
-import UploadPreview from './UploadPreview.vue';
+import { ref, defineProps, defineEmits } from "vue";
+import { ElUpload, ElButton } from "element-plus";
+import UploadPreview from "./UploadPreview.vue";
 
-const fileList = ref([]);
-defineProps({
+const props = defineProps({
   modelValue: [String, Array],
   previewBoxStyle: Object,
   uploadSuccess: Function,
@@ -29,28 +50,40 @@ defineProps({
   name: String,
   onPreview: Function,
   limit: Number,
+  tips: String,
   setup(props) {
     console.log(props);
   },
 });
 
-// console.log(uploadSuccess);
+const fileList = ref([]);
+if (typeof props.modelValue == "string") {
+  fileList.value.push({
+    name: props.modelValue.split("/").pop(),
+    url:props.modelValue,
+  })
+}
 
+if (Array.isArray(props.modelValue)) {
+  props.modelValue.map(function(url){
+    fileList.value.push({
+      name: url.split("/").pop(),
+      url:url,
+    })
+  })
+}
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(["update:modelValue"]);
 const handleSuccess = (response, uploadFile, uploadFiles) => {
-  if (response.exception) {
-    console.log(uploadFile, uploadFiles);
-    updateModel('exception');
+  const value = props.uploadSuccess(response, uploadFile, uploadFiles);
+  if (value !== false) {
+    updateModel(value);
   }
 
-  // const value = props.uploadSuccess(response, uploadFile, uploadFiles);
-  // if (value !== false) {
-  //   updateModel(value);
-  // }
+  console.log(props.modelValue);
 };
 
 function updateModel(value) {
-  emit('update:modelValue', value);
+  emit("update:modelValue", value);
 }
 </script>
