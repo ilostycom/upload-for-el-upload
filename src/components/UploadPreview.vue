@@ -6,6 +6,12 @@
     </div>
 </template>
 
+<script>
+export default {
+  name: 'UploadPreview',
+};
+</script>
+
 <script setup>
 import { defineProps } from 'vue';
 import { String } from 'core-js';
